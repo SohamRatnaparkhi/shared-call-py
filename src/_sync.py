@@ -39,7 +39,7 @@ class SharedCall:
     def __init__(self):
         """Initialize a new request coalescing coordinator."""
         self.in_flight: dict[str, SyncCall] = {}
-        self.forgotten: set[str] = {}
+        self.forgotten: set[str] = set()
         self.lock = threading.Lock()
         self.stats = Stats()
 

@@ -1,4 +1,4 @@
-import asyncio  # noqa: N999
+import asyncio
 from collections.abc import Callable
 from dataclasses import replace
 from functools import wraps
