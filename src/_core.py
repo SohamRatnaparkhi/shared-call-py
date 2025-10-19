@@ -27,10 +27,11 @@ class Result:
 @dataclass
 class Stats:
     """Statistics for a SharedCall instance."""
-    hits: int = 0           # Requests coalesced
-    misses: int = 0         # Actual executions
-    errors: int = 0         # Failed executions
-    in_flight: int = 0      # Currently executing
+
+    hits: int = 0  # Requests coalesced
+    misses: int = 0  # Actual executions
+    errors: int = 0  # Failed executions
+    in_flight: int = 0  # Currently executing
 
     @property
     def hit_rate(self) -> float:
