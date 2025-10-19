@@ -1,1 +1,8 @@
 .venv
+.vscode
+.cursor
+.windsurf
+
+.env
+
+*.cpython-*.pyc
