@@ -1,7 +1,7 @@
 [project]
 name = "shared-call-py"
 version = "0.1.0"
-description = ""
+description = "Request coalescing for Python - eliminate redundant work and protect your systems from thundering herds"
 authors = [
     {name = "SohamRatnaparkhi",email = "soham.ratnaparkhi@gmail.com"}
 ]
