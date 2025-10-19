@@ -6,3 +6,5 @@
 .env
 
 *.cpython-*.pyc
+
+dist
