@@ -10,17 +10,25 @@ from src._core import Result, Stats, generate_key
 T = TypeVar("T")
 
 class SyncCall:
+    """Internal container tracking the state of an in-flight synchronous call."""
+
     def __init__(self, result: Result, event: threading.Event):
+        """Store the placeholder `result` and completion `event` for the call."""
         self.result = result
         self.event = event
 
+
 class SharedCall:
+    """Coordinate synchronous request coalescing across concurrent callers."""
+
     def __init__(self):
+        """Initialise shared state for tracking in-flight calls and statistics."""
         self.in_flight: dict[str, SyncCall] = {}
         self.lock = threading.Lock()
         self.stats = Stats()
 
     def call(self, key: Optional[str], fn: Callable[..., T], *args: Any, **kwargs: Any) -> T:
+        """Invoke `fn`, ensuring only one caller performs work for the derived `key`."""
         if not key:
             key = f"{fn.__module__}.{fn.__name__}:{generate_key(*args, **kwargs)}"
 
@@ -52,18 +60,22 @@ class SharedCall:
         return fn_call.result.unwrap()
 
     def get_stats(self) -> Stats:
+        """Return a snapshot of accumulated `Stats` without mutating internal state."""
         with self.lock:
             return replace(self.stats)
 
     def reset_stats(self):
+        """Reset all tracked metrics to their initial values."""
         with self.lock:
             self.stats = Stats()
 
     def forget(self, key: str):
+        """Drop any cached in-flight call associated with `key`."""
         with self.lock:
             self.in_flight.pop(key, None)
 
     def forget_all(self):
+        """Clear every tracked in-flight call."""
         with self.lock:
             self.in_flight.clear()
 
@@ -88,10 +100,14 @@ class SharedCall:
                 return db.query_with_options(user_id, include_posts)
         """
         def decorator(fn: Callable[..., T]) -> Callable[..., T]:
+            """Wrap `fn` so that concurrent callers share a single execution."""
+
             @wraps(fn)
             def wrapper(*args: Any, **kwargs: Any) -> T:
+                """Execute `fn` via the shared call registry for the computed key."""
                 custom_key = key_fn(*args, **kwargs) if key_fn else None
                 return self.call(custom_key, fn, *args, **kwargs)
-            return wrapper
-        return decorator
 
+            return wrapper
+
+        return decorator
