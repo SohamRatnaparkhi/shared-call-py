@@ -59,22 +59,41 @@ Real-world performance improvements across different scenarios:
 
 The `examples/fastapi/` project includes load-testing scripts that highlight the impact of request coalescing in a real FastAPI application with a PostgreSQL database hosted on [Neon](https://neon.com/).
 
-- **Normal endpoint** (`load_test_normal.sh`)
+**Test Configuration**: 1000 requests, 50 concurrent workers
 
-  - Total requests: 1000
-  - Successful: 1000
-  - Failed: 0
-  - Total duration: 104.04s
-  - Throughput: 9.61 req/s
-  - Response times (ms): min 1057.45 · avg 52036.10 · max 102263 · p50 52118.40 · p95 97211.30 · p99 101256
-- **Coalesced endpoint** (`load_test_coalesced.sh`)
+```
+❌ WITHOUT Request Coalescing (load_test_normal.sh)
+   Total Duration:        104.04s
+   Throughput:            9.61 req/s
+   Success Rate:          100% (1000/1000)
+   
+   Response Times (ms):
+   ├─ Min:                1,057
+   ├─ Average:            52,036
+   ├─ Median (p50):       52,118
+   ├─ p95:                97,211
+   ├─ p99:                101,256
+   └─ Max:                102,263
 
-  - Total requests: 1000
-  - Successful: 1000
-  - Failed: 0
-  - Total duration: 3.84s
-  - Throughput: 260.48 req/s
-  - Response times (ms): min 52.71 · avg 688.04 · max 1462.63 · p50 731.44 · p95 1149.32 · p99 1432.18
+✅ WITH Request Coalescing (load_test_coalesced.sh)
+   Total Duration:        3.84s
+   Throughput:            260.48 req/s
+   Success Rate:          100% (1000/1000)
+   
+   Response Times (ms):
+   ├─ Min:                53
+   ├─ Average:            688
+   ├─ Median (p50):       731
+   ├─ p95:                1,149
+   ├─ p99:                1,432
+   └─ Max:                1,463
+
+📊 PERFORMANCE IMPROVEMENT
+   Duration:              27.1x faster (104s → 3.8s)
+   Throughput:            27.1x higher (9.6 → 260.5 req/s)
+   Avg Response Time:     75.6x faster (52s → 688ms)
+   p99 Response Time:     70.7x faster (101s → 1.4s)
+```
 
 Next, few other benchmark results and methodologies:
 
