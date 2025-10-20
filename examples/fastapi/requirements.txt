@@ -1,0 +1,17 @@
+# FastAPI and ASGI server
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+
+# Database
+asyncpg>=0.29.0
+
+# Environment variables
+python-dotenv>=1.0.0
+
+# Request coalescing
+shared-call-py>=0.1.0
+
+# Optional: for better development experience
+# httpx>=0.25.0  # for testing
+# pytest>=7.4.0
+# pytest-asyncio>=0.21.0
