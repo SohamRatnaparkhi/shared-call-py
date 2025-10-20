@@ -252,6 +252,26 @@ See detailed benchmark results and methodologies:
 - [**Cache Stampede Benchmark**](./docs/benchmarks/cache-stampede.md) - Thundering herd protection
 - [**Rate Limit Benchmark**](./docs/benchmarks/rate-limits.md) - API quota preservation
 
+### FastAPI Example Load Test
+
+The `examples/fastapi/` project includes load-testing scripts that highlight the impact of request coalescing in a real FastAPI application.
+
+- **Normal endpoint** (`load_test_normal.sh`)
+  - Total requests: 1000
+  - Successful: 1000
+  - Failed: 0
+  - Total duration: 104.04s
+  - Throughput: 9.61 req/s
+  - Response times (ms): min 1057.45 · avg 52036.10 · max 102263 · p50 52118.40 · p95 97211.30 · p99 101256
+
+- **Coalesced endpoint** (`load_test_coalesced.sh`)
+  - Total requests: 1000
+  - Successful: 1000
+  - Failed: 0
+  - Total duration: 3.84s
+  - Throughput: 260.48 req/s
+  - Response times (ms): min 52.71 · avg 688.04 · max 1462.63 · p50 731.44 · p95 1149.32 · p99 1432.18
+
 Run benchmarks yourself:
 ```bash
 python examples/mock_db_query.py
