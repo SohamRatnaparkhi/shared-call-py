@@ -2,10 +2,35 @@
 
 **Eliminate redundant work and protect your systems from thundering herds with intelligent request coalescing.**
 
-A Python implementation of request deduplication inspired by Go's `singleflight` pattern. When multiple concurrent requests ask for the same resource, only one does the actual work—everyone else gets the same result instantly.
-
 [![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+A Python implementation of request deduplication inspired by Go's [singleflight](https://pkg.go.dev/golang.org/x/sync/singleflight) pattern, improved with Python-first ergonomics. When multiple concurrent requests ask for the same resource, only one does the actual work—everyone else gets the same result instantly.
+
+**No major code changes required.** Just use the `@shared.group()` decorator or simple functions like `call()` (execute once) and `forget()` (invalidate keys) as implemented in [`src/shared_call_py/_sync.py`](src/shared_call_py/_sync.py) and [`src/shared_call_py/_async.py`](src/shared_call_py/_async.py).
+
+### ✨ Key Features
+
+- 🚀 **92.6x faster** - Eliminate redundant database queries ([see benchmarks](#-benchmarks))
+- 🔒 **Thread-safe & async-safe** - Works with `asyncio`, threads, and multiprocessing
+- 🎯 **Zero dependencies** - Built on Python standard library only  
+- 🧠 **Smart auto-keying** - Automatic deduplication based on function + arguments
+- 📊 **Built-in monitoring** - Track hit rates, errors, and performance metrics
+- 🏛️ **Production-ready** - Battle-tested patterns from high-scale systems
+
+## 📋 Table of Contents
+
+- [The Problem](#-the-problem)
+- [Benchmarks](#-benchmarks)
+- [Installation](#-installation)
+- [Quick Start](#-quick-start)
+- [Use Cases](#️-use-cases)
+- [Advanced Features](#️-advanced-features)
+- [Documentation](#-documentation)
+- [How It Works](#-how-it-works)
+- [When NOT to Use](#-when-not-to-use)
+- [Development](#️-development)
+- [FAQ](#-faq)
 
 ## 🎯 The Problem
 
@@ -19,9 +44,44 @@ Modern applications face three critical challenges:
 
 **shared-call-py approach**: Coalesce duplicate in-flight requests into a single execution. The first caller becomes the "leader" and does the work. All others wait and receive the same result.
 
-## 🚀 Real-World Impact
+## 📊 Benchmarks
 
-### Database Load Reduction
+Real-world performance improvements across different scenarios:
+
+| Scenario | Without Coalescing | With Coalescing | Improvement |
+|----------|-------------------|-----------------|-------------|
+| **Database Load** | 6.01s, 100 queries | 0.07s, 1 query | **92.6x faster** |
+| **Cache Stampede** | 100 DB hits | 1 DB hit | **99% reduction** |
+| **Rate Limits** | 90% failed | 0% failed | **100% success** |
+| **FastAPI Load Test** | 104s, 52s avg latency | 3.8s, 688ms avg latency | **27x faster** |
+
+### FastAPI Example Load Test
+
+The `examples/fastapi/` project includes load-testing scripts that highlight the impact of request coalescing in a real FastAPI application with a PostgreSQL database hosted on [Neon](https://neon.com/).
+
+- **Normal endpoint** (`load_test_normal.sh`)
+
+  - Total requests: 1000
+  - Successful: 1000
+  - Failed: 0
+  - Total duration: 104.04s
+  - Throughput: 9.61 req/s
+  - Response times (ms): min 1057.45 · avg 52036.10 · max 102263 · p50 52118.40 · p95 97211.30 · p99 101256
+- **Coalesced endpoint** (`load_test_coalesced.sh`)
+
+  - Total requests: 1000
+  - Successful: 1000
+  - Failed: 0
+  - Total duration: 3.84s
+  - Throughput: 260.48 req/s
+  - Response times (ms): min 52.71 · avg 688.04 · max 1462.63 · p50 731.44 · p95 1149.32 · p99 1432.18
+
+Next, few other benchmark results and methodologies:
+
+- [**Database Load Benchmark**](./docs/benchmarks/database-load.md) - Connection pool exhaustion prevention
+- [**Cache Stampede Benchmark**](./docs/benchmarks/cache-stampede.md) - Thundering herd protection
+- [**Rate Limit Benchmark**](./docs/benchmarks/rate-limits.md) - API quota preservation
+
 **Scenario**: 100 concurrent requests hit a database with 10 connection pool limit
 
 ```
@@ -48,6 +108,7 @@ Modern applications face three critical challenges:
 ```
 
 ### Cache Stampede Protection
+
 **Scenario**: 100 users hit endpoint simultaneously when cache expires
 
 ```
@@ -66,6 +127,7 @@ Modern applications face three critical challenges:
 ```
 
 ### Rate Limit Prevention
+
 **Scenario**: API with 10 requests/second limit, 50 concurrent requests
 
 ```
@@ -82,6 +144,14 @@ Modern applications face three critical challenges:
    Rate Limit Status: ✅ No violations
 ```
 
+Run them yourself:
+
+```bash
+python examples/mock_db_query.py
+python examples/thundering_herd.py
+python examples/ratelimit.py
+```
+
 ## 📦 Installation
 
 ```bash
@@ -89,11 +159,14 @@ pip install shared-call-py
 ```
 
 Or with Poetry:
+
 ```bash
 poetry add shared-call-py
 ```
 
 ## 🎨 Quick Start
+
+Get up and running in under 2 minutes. Choose async (recommended for modern apps) or sync (for legacy/threaded code).
 
 ### Async Usage (Recommended)
 
@@ -121,6 +194,7 @@ asyncio.run(main())
 ```
 
 **Output:**
+
 ```
 🔍 Fetching user 42 from database...
 ✅ Got 100 results, but only 1 database query!
@@ -145,6 +219,8 @@ result = expensive_operation(5)
 ```
 
 ## 🏗️ Use Cases
+
+See [Quick Start](#-quick-start) for basic usage examples.
 
 ### 1. Protect Your Database
 
@@ -205,6 +281,8 @@ async def process_webhook(webhook_id: str):
 
 ## 🎛️ Advanced Features
 
+For basic usage, see [Quick Start](#-quick-start). These advanced features give you fine-grained control.
+
 ### Custom Key Functions
 
 Control coalescing granularity with custom key functions:
@@ -244,47 +322,12 @@ await shared.forget_all()
 await shared.reset_stats()
 ```
 
-## 📊 Benchmarks
-
-See detailed benchmark results and methodologies:
-
-- [**Database Load Benchmark**](./docs/benchmarks/database-load.md) - Connection pool exhaustion prevention
-- [**Cache Stampede Benchmark**](./docs/benchmarks/cache-stampede.md) - Thundering herd protection
-- [**Rate Limit Benchmark**](./docs/benchmarks/rate-limits.md) - API quota preservation
-
-### FastAPI Example Load Test
-
-The `examples/fastapi/` project includes load-testing scripts that highlight the impact of request coalescing in a real FastAPI application.
-
-- **Normal endpoint** (`load_test_normal.sh`)
-  - Total requests: 1000
-  - Successful: 1000
-  - Failed: 0
-  - Total duration: 104.04s
-  - Throughput: 9.61 req/s
-  - Response times (ms): min 1057.45 · avg 52036.10 · max 102263 · p50 52118.40 · p95 97211.30 · p99 101256
-
-- **Coalesced endpoint** (`load_test_coalesced.sh`)
-  - Total requests: 1000
-  - Successful: 1000
-  - Failed: 0
-  - Total duration: 3.84s
-  - Throughput: 260.48 req/s
-  - Response times (ms): min 52.71 · avg 688.04 · max 1462.63 · p50 731.44 · p95 1149.32 · p99 1432.18
-
-Run benchmarks yourself:
-```bash
-python examples/mock_db_query.py
-python examples/thundering_herd.py
-python examples/ratelimit.py
-```
-
 ## 📚 Documentation
 
 - [**Quick Start Guide**](./docs/quickstart.md) - Get started in 5 minutes
-- [**API Reference**](./docs/api-reference.md) - Complete API documentation
-- [**Benchmarks**](./docs/benchmarks/) - Performance comparisons
-- [**Examples**](./examples/) - Real-world usage patterns
+- [**API Reference**](./docs/api-reference.md) - Complete API documentation  
+- [**Benchmarks**](./docs/benchmarks/) - Detailed performance comparisons ([also see above](#-benchmarks))
+- [**Examples**](./examples/) - Real-world usage patterns including [FastAPI](./examples/fastapi/), [Django](./examples/django/), and [Flask](./examples/flask/)
 
 ## 🔧 How It Works
 
@@ -294,6 +337,7 @@ python examples/ratelimit.py
 4. **Cleanup**: Call completes, resources released
 
 Key features:
+
 - **Thread-safe** and **async-safe**
 - **Automatic key generation** from function name and arguments
 - **Error propagation** - all waiters receive the same exception
@@ -301,10 +345,18 @@ Key features:
 
 ## 🤝 When NOT to Use
 
-- **Mutations**: Don't coalesce write operations (POST, PUT, DELETE)
-- **User-specific data**: Each user needs their own result
-- **Time-sensitive**: When staleness matters (though you can `forget()` keys)
+❌ **Avoid coalescing in these scenarios:**
+
+- **Mutations**: Don't coalesce write operations (POST, PUT, DELETE) - each must execute independently
+- **User-specific data**: Each user needs their own result (unless you customize the [key function](#custom-key-functions))
+- **Time-sensitive data**: When staleness matters (though you can use [`forget()`](#cache-invalidation) to invalidate keys)
 - **Side effects**: Functions with important side effects beyond the return value
+
+✅ **Perfect for:**
+- Database queries ([example](#1-protect-your-database))
+- External API calls ([rate limit protection](#2-respect-rate-limits))
+- Cache warming ([stampede prevention](#3-prevent-cache-stampede))
+- Expensive computations with identical inputs
 
 ## 🛠️ Development
 
@@ -329,7 +381,7 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 ## 🌟 Credits
 
-Inspired by [Go's singleflight pattern](https://pkg.go.dev/golang.org/x/sync/singleflight) and adapted for Python's async/await paradigm.
+Inspired by [Go&#39;s singleflight pattern](https://pkg.go.dev/golang.org/x/sync/singleflight) and adapted for Python's async/await paradigm.
 
 ## 🤔 FAQ
 
@@ -337,13 +389,19 @@ Inspired by [Go's singleflight pattern](https://pkg.go.dev/golang.org/x/sync/sin
 A: All waiting callers receive the same exception. They can retry, which will elect a new leader.
 
 **Q: How is this different from caching?**  
-A: Caching stores past results. Coalescing deduplicates *in-flight* requests. They complement each other.
+A: Caching stores *past* results. Coalescing deduplicates *in-flight* requests. They complement each other—use both for maximum efficiency!
 
 **Q: Does this work with FastAPI/Django/Flask?**  
-A: Yes! It's framework-agnostic. Just decorate your data-fetching functions.
+A: Yes! It's framework-agnostic. Check out our [examples](./examples/) for FastAPI, Django, and Flask integrations.
 
 **Q: What about memory leaks?**  
-A: Completed calls are automatically cleaned up. Use `forget()` or `forget_all()` for manual control.
+A: Completed calls are automatically cleaned up. Use [`forget()`](#cache-invalidation) or `forget_all()` for manual control.
+
+**Q: Can I use this with sync and async code?**  
+A: Yes! Use `SharedCall` for sync/threaded code and `AsyncSharedCall` for async/await. See [Quick Start](#-quick-start).
+
+**Q: How do I monitor performance?**  
+A: Use [`get_stats()`](#statistics-and-monitoring) to track hit rates, misses, and errors. Perfect for observability dashboards!
 
 ---
 

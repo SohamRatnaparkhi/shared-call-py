@@ -1,6 +1,6 @@
 [project]
 name = "shared-call-py"
-version = "0.1.0"
+version = "0.1.1"
 description = "Request coalescing for Python - eliminate redundant work and protect your systems from thundering herds"
 authors = [
     {name = "SohamRatnaparkhi",email = "soham.ratnaparkhi@gmail.com"}
@@ -9,6 +9,10 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
 ]
+urls = {
+    "Homepage" = "https://github.com/SohamRatnaparkhi/shared-call-py",
+    "Repository" = "https://github.com/SohamRatnaparkhi/shared-call-py",
+}
 
 
 [build-system]
@@ -83,3 +87,14 @@ line-ending = "auto"
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]
+testpaths = ["tests"]
+addopts = [
+    "--cov=src",
+    "--cov-report=term-missing",
+]
+
+[tool.coverage.run]
+source = ["src"]
+
+[tool.coverage.report]
+show_missing = true
