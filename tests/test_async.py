@@ -2,7 +2,7 @@ import asyncio
 
 import pytest
 
-from src._async import AsyncSharedCall
+from shared_call_py import AsyncSharedCall
 
 
 @pytest.mark.asyncio

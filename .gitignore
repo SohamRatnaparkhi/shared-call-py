@@ -8,3 +8,5 @@
 *.cpython-*.pyc
 
 dist
+
+.coverage

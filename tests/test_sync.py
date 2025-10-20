@@ -1,7 +1,7 @@
 import threading
 import time
 
-from src._sync import SharedCall
+from shared_call_py import SharedCall
 
 
 def test_sync_group_coalesces_concurrent_requests():

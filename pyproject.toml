@@ -63,7 +63,7 @@ ignore = [
 "tests/**" = ["S101"]  # Use of assert in tests is fine
 
 [tool.ruff.lint.isort]
-known-first-party = ["src"]
+known-first-party = ["shared_call_py"]
 known-third-party = ["pytest"]
 force-single-line = false
 lines-after-imports = 2
@@ -81,3 +81,5 @@ quote-style = "double"
 indent-style = "space"
 line-ending = "auto"
 
+[tool.pytest.ini_options]
+pythonpath = ["src"]

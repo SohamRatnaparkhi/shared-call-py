@@ -8,7 +8,7 @@ import threading
 import time
 from typing import Optional
 
-from src._sync import SharedCall
+from shared_call_py import SharedCall
 
 
 # Simulate a simple database

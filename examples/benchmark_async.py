@@ -8,16 +8,7 @@ import asyncio
 import time
 from dataclasses import dataclass
 
-
-try:
-    from src import AsyncSharedCall
-except ModuleNotFoundError:
-    import sys
-    from pathlib import Path
-
-    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-
-    from src import AsyncSharedCall
+from shared_call_py import AsyncSharedCall
 
 
 @dataclass

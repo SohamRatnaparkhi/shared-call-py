@@ -1,6 +1,6 @@
 import asyncio
 
-from src._async import AsyncSharedCall
+from shared_call_py import AsyncSharedCall
 
 
 shared = AsyncSharedCall()

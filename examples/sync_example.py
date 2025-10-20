@@ -1,4 +1,4 @@
-from src._sync import SharedCall
+from shared_call_py import SharedCall
 
 
 shared = SharedCall()

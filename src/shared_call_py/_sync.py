@@ -4,7 +4,7 @@ from dataclasses import replace
 from functools import wraps
 from typing import Any, Optional, TypeVar
 
-from src._core import Result, Stats, generate_key
+from shared_call_py._core import Result, Stats, generate_key
 
 
 T = TypeVar("T")
